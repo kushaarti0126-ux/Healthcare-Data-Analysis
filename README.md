@@ -21,7 +21,7 @@ Interactive Power BI dashboard included (.pbix file)
 
 ## 📷 Dashboard Screenshot
 
-</> Markdown
-## 📷 Dashboard Screenshot
 
-![Dashboard](dashboard.png)
+
+
+
