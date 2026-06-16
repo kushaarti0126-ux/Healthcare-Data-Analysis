@@ -18,3 +18,9 @@ This project analyzes healthcare appointment data to understand the reasons behi
 
 ## 📈 Dashboard
 Interactive Power BI dashboard included (.pbix file)
+
+## 📷 Dashboard Screenshot
+
+</> markdown
+![Dashboard]
+(Final Dashboard of hospital Emergency.png)
