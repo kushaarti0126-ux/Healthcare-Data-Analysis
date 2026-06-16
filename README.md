@@ -21,6 +21,7 @@ Interactive Power BI dashboard included (.pbix file)
 
 ## 📷 Dashboard Screenshot
 
-</> markdown
-![Dashboard]
-(Final Dashboard of hospital Emergency.png)
+</> Markdown
+## 📷 Dashboard Screenshot
+
+![Dashboard](dashboard.png)
