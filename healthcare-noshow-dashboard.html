@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Healthcare No-Show Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;padding:14px;}
+
+.dashboard{max-width:1280px;margin:0 auto;background:#e8eef4;border-radius:14px;padding:16px;box-shadow:0 4px 24px rgba(0,0,0,0.12);}
+
+/* HEADER */
+.header{background:#fff;border-radius:10px;padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 6px rgba(0,0,0,0.07);}
+.header-icon{font-size:32px;}
+.header h1{font-size:20px;font-weight:800;color:#1a2636;}
+.header p{font-size:12px;color:#666;margin-top:2px;}
+
+/* MONTH FILTER */
+.month-filter{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.month-btn{padding:7px 18px;border:2px solid #c0c8d4;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1a2636;transition:all .2s;}
+.month-btn:hover{background:#e8eef4;}
+.month-btn.active{background:#2563eb;border-color:#2563eb;color:#fff;}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.kpi-card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,0.07);position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px;}
+.kpi-card.blue::before{background:#2563eb;}
+.kpi-card.red::before{background:#ef4444;}
+.kpi-card.green::before{background:#22c55e;}
+.kpi-card.orange::before{background:#f97316;}
+.kpi-label{font-size:11px;color:#666;font-weight:500;margin-bottom:6px;}
+.kpi-value{font-size:28px;font-weight:800;color:#1a2636;}
+.kpi-sub{font-size:11px;color:#888;margin-top:4px;}
+
+/* CHARTS GRID */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.chart-card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);}
+.chart-card h3{font-size:12px;font-weight:600;color:#444;margin-bottom:10px;text-align:center;}
+.chart-wrap{height:160px;position:relative;}
+
+/* BOTTOM GRID */
+.bottom-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.bottom-card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);}
+.bottom-card h3{font-size:12px;font-weight:600;color:#444;margin-bottom:10px;text-align:center;}
+.bottom-wrap{height:140px;}
+
+/* BAR ROWS for simple bars */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bar-row-label{font-size:11px;color:#444;width:80px;text-align:right;flex-shrink:0;}
+.bar-row-wrap{flex:1;background:#e8eef4;border-radius:4px;height:18px;}
+.bar-row-fill{height:18px;border-radius:4px;transition:width .6s ease;}
+.bar-row-val{font-size:11px;font-weight:700;color:#1a2636;width:36px;}
+
+/* INSIGHT BOX */
+.insights{background:#fff;border-radius:10px;padding:14px 20px;margin-top:14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);}
+.insights h3{font-size:13px;font-weight:700;color:#1a2636;margin-bottom:10px;}
+.insight-items{display:flex;gap:20px;flex-wrap:wrap;}
+.insight-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#444;}
+.insight-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-icon">🏥</div>
+    <div>
+      <h1>Medical Appointment — No-Show Analysis</h1>
+      <p>Healthcare appointment data analysis | Excel • Power BI • Python</p>
+    </div>
+  </div>
+
+  <!-- MONTH FILTER -->
+  <div class="month-filter">
+    <button class="month-btn active" onclick="setMonth('All',this)">All Months</button>
+    <button class="month-btn" onclick="setMonth('April',this)">April</button>
+    <button class="month-btn" onclick="setMonth('May',this)">May</button>
+    <button class="month-btn" onclick="setMonth('June',this)">June</button>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Appointments</div>
+      <div class="kpi-value" id="kpiTotal">3K</div>
+      <div class="kpi-sub">All months combined</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Total No-Show</div>
+      <div class="kpi-value" id="kpiNoShow">608</div>
+      <div class="kpi-sub">Missed appointments</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Total Showed Up</div>
+      <div class="kpi-value" id="kpiShowed">2K</div>
+      <div class="kpi-sub">Attended appointments</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">No-Show %</div>
+      <div class="kpi-value" id="kpiPct">19.59%</div>
+      <div class="kpi-sub">Of total appointments</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>SMS Reminder Impact on Shows</h3>
+      <div class="chart-wrap"><canvas id="smsChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>No-Show vs Waiting Days</h3>
+      <div class="chart-wrap"><canvas id="waitChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>No-Show by Age Group</h3>
+      <div class="chart-wrap"><canvas id="ageChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="bottom-grid">
+    <div class="bottom-card">
+      <h3>No-Show by Day of Week</h3>
+      <div class="bottom-wrap"><canvas id="dayChart"></canvas></div>
+    </div>
+    <div class="bottom-card">
+      <h3>No-Show by Gender</h3>
+      <div class="bottom-wrap"><canvas id="genderChart"></canvas></div>
+    </div>
+    <div class="bottom-card">
+      <h3>No-Show by Condition</h3>
+      <div id="conditionBars" style="padding-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- KEY INSIGHTS -->
+  <div class="insights">
+    <h3>📊 Key Insights</h3>
+    <div class="insight-items">
+      <div class="insight-item"><div class="insight-dot" style="background:#2563eb"></div>Most no-shows are from age group 20–40 (Adult)</div>
+      <div class="insight-item"><div class="insight-dot" style="background:#22c55e"></div>SMS reminders significantly reduced no-show rate</div>
+      <div class="insight-item"><div class="insight-dot" style="background:#f97316"></div>Female patients show higher no-show count than male</div>
+      <div class="insight-item"><div class="insight-dot" style="background:#ef4444"></div>Patients with 0 waiting days have highest no-shows (232)</div>
+      <div class="insight-item"><div class="insight-dot" style="background:#8b5cf6"></div>Friday has the highest no-show day count</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {
+  All:   { total:'3K', noshow:608, showed:'2K', pct:'19.59%',
+           sms:[285,323], wait:[232,68,51,30,42,4,2], age:[239,159,133,77],
+           day:[620,540,480,390,410,680,200], gender:[380,228] },
+  April: { total:'1.1K', noshow:220, showed:'880', pct:'20.00%',
+           sms:[105,115], wait:[88,25,18,11,15,2,1], age:[90,58,48,24],
+           day:[230,195,170,140,148,245,72], gender:[138,82] },
+  May:   { total:'980', noshow:195, showed:'785', pct:'19.90%',
+           sms:[98,97], wait:[78,22,17,10,14,1,1], age:[82,54,44,15],
+           day:[210,178,155,128,135,224,66], gender:[122,73] },
+  June:  { total:'920', noshow:193, showed:'727', pct:'20.98%',
+           sms:[82,111], wait:[66,21,16,9,13,1,0], age:[67,47,41,38],
+           day:[180,167,155,122,127,211,62], gender:[120,73] },
+};
+
+let smsC, waitC, ageC, dayC, genderC;
+
+function setMonth(m, btn) {
+  document.querySelectorAll('.month-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = DATA[m];
+  document.getElementById('kpiTotal').textContent = d.total;
+  document.getElementById('kpiNoShow').textContent = d.noshow;
+  document.getElementById('kpiShowed').textContent = d.showed;
+  document.getElementById('kpiPct').textContent = d.pct;
+  smsC.data.datasets[0].data = d.sms; smsC.update();
+  waitC.data.datasets[0].data = d.wait; waitC.update();
+  ageC.data.datasets[0].data = d.age; ageC.update();
+  dayC.data.datasets[0].data = d.day; dayC.update();
+  genderC.data.datasets[0].data = d.gender; genderC.update();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const d = DATA['All'];
+
+  // SMS Chart (doughnut)
+  smsC = new Chart(document.getElementById('smsChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['SMS Received', 'No SMS'],
+      datasets: [{ data: d.sms, backgroundColor: ['#2563eb','#e8eef4'], borderWidth: 0 }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      responsive: true, maintainAspectRatio: false, cutout: '60%'
+    }
+  });
+
+  // Wait days chart (bar)
+  waitC = new Chart(document.getElementById('waitChart'), {
+    type: 'bar',
+    data: {
+      labels: ['0','10','20','30','40','70','100'],
+      datasets: [{ data: d.wait, backgroundColor: '#2563eb', borderRadius: 4, label: 'No-Show' }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { display: false } },
+      responsive: true, maintainAspectRatio: false
+    }
+  });
+
+  // Age group pie
+  ageC = new Chart(document.getElementById('ageChart'), {
+    type: 'pie',
+    data: {
+      labels: ['Adult','Senior','Middle Age','Child'],
+      datasets: [{ data: d.age, backgroundColor: ['#2563eb','#f97316','#ef4444','#8b5cf6'], borderWidth: 0 }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } },
+      responsive: true, maintainAspectRatio: false
+    }
+  });
+
+  // Day of week
+  dayC = new Chart(document.getElementById('dayChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Sat','Fri','Sun'],
+      datasets: [{ data: d.day, backgroundColor: '#2563eb', borderRadius: 4, label: 'No-Show' }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { display: false } },
+      responsive: true, maintainAspectRatio: false
+    }
+  });
+
+  // Gender
+  genderC = new Chart(document.getElementById('genderChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Female (F)', 'Male (M)'],
+      datasets: [{ data: d.gender, backgroundColor: ['#ef4444','#2563eb'], borderRadius: 6, label: 'No-Show' }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 11 } } }, y: { display: false } },
+      responsive: true, maintainAspectRatio: false
+    }
+  });
+
+  // Condition bars
+  const conditions = [
+    { label: 'No Condition', val: 592, color: '#2563eb' },
+    { label: 'Diabetes', val: 567, color: '#f97316' },
+    { label: 'Hypertension', val: 508, color: '#ef4444' },
+    { label: 'Alcoholism', val: 41, color: '#8b5cf6' },
+  ];
+  const max = 592;
+  document.getElementById('conditionBars').innerHTML = conditions.map(c => `
+    <div class="bar-row">
+      <div class="bar-row-label">${c.label}</div>
+      <div class="bar-row-wrap">
+        <div class="bar-row-fill" style="width:${(c.val/max*100).toFixed(1)}%;background:${c.color}"></div>
+      </div>
+      <div class="bar-row-val">${c.val}</div>
+    </div>
+  `).join('');
+});
+</script>
+</body>
+</html>
